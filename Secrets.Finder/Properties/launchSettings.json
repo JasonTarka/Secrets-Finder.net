@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Secrets.Finder": {
+      "commandName": "Project"
+    }
+  }
+}
