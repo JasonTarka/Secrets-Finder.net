@@ -18,6 +18,8 @@ namespace Secrets.Finder.Tools {
 			"gif",
 			"png",
 			"ico",
+			"bmp",
+			"svg",
 			// Media
 			"avi",
 			"mpg",
@@ -27,6 +29,7 @@ namespace Secrets.Finder.Tools {
 			"mp3",
 			"mpeg3",
 			"mov",
+			"swf",
 			// Documents
 			"pdf",
 			"doc",
@@ -35,10 +38,17 @@ namespace Secrets.Finder.Tools {
 			"xlsx",
 			"odt",
 			"odp",
+			"ai",
 			// Executables
 			"exe",
 			"dll",
-			"so"
+			"so",
+			"bin",
+			"jar",
+			"pyc",
+			// Database backups
+			"mdf",
+			"ldf"
 		};
 
 		private static readonly HashSet<string> ArchiveExtensions = new HashSet<string> {
@@ -51,6 +61,12 @@ namespace Secrets.Finder.Tools {
 			"bz2",
 			"7zip",
 			"7z"
+		};
+
+		private static readonly HashSet<char> AllowedControlChars = new HashSet<char> {
+			'\r',
+			'\n',
+			'\t'
 		};
 
 		public static async Task<bool> IsBinaryFileAsync( FileInfo file ) {
@@ -69,7 +85,7 @@ namespace Secrets.Finder.Tools {
 
 				int controlChars = chars.Take( totalChars )
 					.Count(
-						c => char.IsControl( c ) && c != '\n' && c != '\r'
+						c => char.IsControl( c ) && !AllowedControlChars.Contains( c )
 					);
 
 				float percentControlChars = controlChars / (float)totalChars;

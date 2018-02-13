@@ -16,11 +16,20 @@ namespace Secrets.Finder.Filters {
 		const int MinLength = 3;
 		const float RequiredPercent = 0.30f;
 
-		private static readonly Lazy<HashSet<string>> m_dictionary = new Lazy<HashSet<string>>(
-			() => Resources.words
-				.Split( '\n' )
-				.ToHashSet()
-		);
+		private static readonly Lazy<HashSet<string>> Dictionary = new Lazy<HashSet<string>>(
+			() => {
+				IEnumerable<string> dictionary = Resources.words
+					.Split( '\n' );
+				IEnumerable<string> nouns = Resources.properNouns
+					.Split( '\n' )
+					.Where(
+						str => !string.IsNullOrWhiteSpace( str )
+							&& !str.StartsWith( '#' )
+					).Select( str => str.ToLowerInvariant() );
+				return dictionary.Concat( nouns )
+					.Where( x => x.Length >= MinLength )
+					.ToHashSet();
+			} );
 
 		private static readonly char[] NumbersAndCommonSeparators =
 			@"0123456789_!@#$%^&*()=+[{]}\|;:'"",<.>/? -".ToCharArray();
@@ -44,7 +53,7 @@ namespace Secrets.Finder.Filters {
 		);
 
 		private bool MadeOfDictionaryWords( string str ) {
-			HashSet<string> dictionary = m_dictionary.Value;
+			HashSet<string> dictionary = Dictionary.Value;
 			string[] words = SplitIntoWords( str ).ToArray();
 
 			int totalWords = words.Length;

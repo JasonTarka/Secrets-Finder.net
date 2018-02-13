@@ -9,14 +9,22 @@ namespace Secrets.Finder.Parser {
 	internal static class Tokenizer {
 		// Note: this includes / to ensure URLs are split, but also splits base64-encoded strings
 		private static readonly Regex TokenSplit = new Regex(
-				@"[`#&()|=[\]{};:'\""/?<>,.\s]+",
-				RegexOptions.Compiled
+				@"[`#&()|=[\]{};:'\""/\\?<>,.\s]+",
+				RegexOptions.Compiled | RegexOptions.Singleline
+			);
+
+		private static readonly Regex UrlEncodedChars = new Regex(
+				//  \s"#&'(), / .     : ; < = > ?     [ ]   `    { | }
+				"%(2[0236789CcFfEe]|3[AaBbCcDdEeFf]|5[BbDd]|60|7[BbCcDd])",
+				RegexOptions.Compiled | RegexOptions.ExplicitCapture
 			);
 
 		public static async Task<IEnumerable<string>> TokenizeFile( FileInfo file ) {
 			IEnumerable<string> lines = await File.ReadAllLinesAsync( file.FullName );
 
 			IEnumerable<Regex> patterns = await FilterFiles.PreParse;
+			patterns = patterns.Append( UrlEncodedChars );
+
 			lines = PreParseLines( lines, patterns );
 			IEnumerable<string> tokens = lines.SelectMany(
 					line => TokenSplit.Split( line )
@@ -27,9 +35,8 @@ namespace Secrets.Finder.Parser {
 		/// <summary>
 		/// Pre-parse lines to remove filters that the user has specified
 		/// </summary>
-		/// <param name="lines"></param>
 		/// <returns></returns>
-		public static IEnumerable<string> PreParseLines(
+		private static IEnumerable<string> PreParseLines(
 			IEnumerable<string> lines,
 			IEnumerable<Regex> patterns
 		) {
@@ -37,7 +44,7 @@ namespace Secrets.Finder.Parser {
 				.ToList();
 		}
 
-		public static string PreParseLine(
+		private static string PreParseLine(
 			string line,
 			IEnumerable<Regex> patterns
 		) {

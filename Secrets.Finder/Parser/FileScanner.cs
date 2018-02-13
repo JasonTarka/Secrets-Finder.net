@@ -14,7 +14,8 @@ namespace Secrets.Finder.Parser {
 		/// </summary>
 		private static readonly IFilter[] PreFilters = {
 			new MinLength(),
-			new Whitelist()
+			new Whitelist(),
+			new Identifiers()
 		};
 
 		/// <summary>

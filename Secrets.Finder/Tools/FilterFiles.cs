@@ -20,6 +20,7 @@ namespace Secrets.Finder.Tools {
 							pattern,
 							RegexOptions.Compiled | RegexOptions.CultureInvariant
 							| RegexOptions.IgnoreCase | RegexOptions.Singleline
+							| RegexOptions.ExplicitCapture
 						)
 					)
 			);
@@ -31,6 +32,7 @@ namespace Secrets.Finder.Tools {
 							pattern,
 							RegexOptions.Compiled | RegexOptions.CultureInvariant
 							| RegexOptions.IgnoreCase | RegexOptions.Singleline
+							| RegexOptions.ExplicitCapture
 						)
 					)
 			);
@@ -41,7 +43,7 @@ namespace Secrets.Finder.Tools {
 						pattern => new Regex(
 							pattern,
 							RegexOptions.Compiled | RegexOptions.CultureInvariant
-							| RegexOptions.IgnoreCase | RegexOptions.Multiline
+							| RegexOptions.ExplicitCapture
 						)
 					)
 			);

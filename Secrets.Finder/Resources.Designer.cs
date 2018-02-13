@@ -61,6 +61,90 @@ namespace Secrets.Finder {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to January
+        ///Jan
+        ///February
+        ///Feb
+        ///March
+        ///Mar
+        ///April
+        ///Apr
+        ///May
+        ///June
+        ///Jun
+        ///July
+        ///Jul
+        ///August
+        ///Aug
+        ///September
+        ///Sept
+        ///Sep
+        ///October
+        ///Oct
+        ///November
+        ///Nov
+        ///December
+        ///Dec
+        ///
+        ///Sunday
+        ///Sun
+        ///Monday
+        ///Mon
+        ///Tuesday
+        ///Tues
+        ///Wednesday
+        ///Wed
+        ///Thursday
+        ///Thurs
+        ///Friday
+        ///Fri
+        ///Saturday
+        ///Sat
+        ///
+        ///Africa
+        ///America
+        ///Asia
+        ///Europe
+        ///Antarctica
+        ///
+        ///Afghanistan
+        ///Albania
+        ///Algeria
+        ///Andorra
+        ///Angola
+        ///Antigua
+        ///Barbuda
+        ///Argentina
+        ///Armenia
+        ///Aruba
+        ///Australia
+        ///Austria
+        ///Azerbaijan
+        ///Bahamas
+        ///Bahrain
+        ///Bangladesh
+        ///Bengal
+        ///Barbados
+        ///Belarus
+        ///Belgium
+        ///Belize
+        ///Benin
+        ///Bermuda
+        ///Bhutan
+        ///Bolivia
+        ///Bosnia
+        ///Herzegovina
+        ///Botswana
+        ///Brazil
+        ///Brunei [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string properNouns {
+            get {
+                return ResourceManager.GetString("properNouns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to aah
         ///aahed
         ///aahing
