@@ -20,6 +20,9 @@ namespace Secrets.Finder.Tools {
 			"ico",
 			"bmp",
 			"svg",
+			"tiff",
+			"tif",
+			"bmp",
 			// Media
 			"avi",
 			"mpg",
@@ -39,6 +42,8 @@ namespace Secrets.Finder.Tools {
 			"odt",
 			"odp",
 			"ai",
+			"ppt",
+			"pptx",
 			// Executables
 			"exe",
 			"dll",
@@ -48,7 +53,13 @@ namespace Secrets.Finder.Tools {
 			"pyc",
 			// Database backups
 			"mdf",
-			"ldf"
+			"ldf",
+			// Font files
+			"ttf",
+			"ufm",
+			"afm",
+			// Not entirely sure
+			"nib"
 		};
 
 		private static readonly HashSet<string> ArchiveExtensions = new HashSet<string> {

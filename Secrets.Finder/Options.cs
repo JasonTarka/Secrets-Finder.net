@@ -84,5 +84,21 @@ namespace Secrets.Finder {
 			BoolFunction = BoolFunction.TrueIfPresent
 		)]
 		public bool SortOutput { get; set; } = false;
+
+		[CommandLineOption(
+			Name = "getEntropy",
+			Aliases = "g",
+			Description = "Output the entropy level of <--dir>, rather than scanning a directory",
+			BoolFunction = BoolFunction.TrueIfPresent
+		)]
+		public bool GetEntropy { get; set; } = false;
+
+		[CommandLineOption(
+			Name = "warn",
+			Aliases = "n",
+			Description = "Include warnings about large files, or ones that take a long time to scan",
+			BoolFunction = BoolFunction.TrueIfPresent
+		)]
+		public bool ShowWarnings { get; set; } = false;
     }
 }

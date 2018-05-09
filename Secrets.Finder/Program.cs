@@ -13,6 +13,12 @@ using Secrets.Finder.Tools;
 namespace Secrets.Finder {
 	class Program {
 
+		const long SafeFileSizeInMegabytes = 1;
+		const long MegabytesInBytes = 1024 * 1024;
+		const long SafeFileSizeInBytes = SafeFileSizeInMegabytes * MegabytesInBytes;
+		const long SafeLengthInSeconds = 2;
+		const long SafeLengthinMilliseconds = SafeLengthInSeconds * 1000;
+
 		static int Main( string[] args ) {
 			Options options = GetOptions();
 			if( options == null ) {
@@ -22,9 +28,14 @@ namespace Secrets.Finder {
 				return 0;
 			}
 
-			RunScan();
+			if( options.GetEntropy ) {
+				OutputEntropy( options.Directory );
+			} else {
+				RunScan();
+			}
 
 			if( Debugger.IsAttached ) {
+				Console.WriteLine( "Done scanning" );
 				Console.WriteLine( "Press any key to continue..." );
 				Console.ReadKey();
 			}
@@ -60,11 +71,15 @@ namespace Secrets.Finder {
 			}
 		}
 
+		private static void OutputEntropy( string str ) {
+			double entropy = EntropyCalculator.CalculateEntropy( str );
+			Console.WriteLine( $"Entropy of '{str}': {entropy}" );
+		}
+
 		private static void RunScan() {
 			Task<IEnumerable<FileInfo>> findFilesToScan = FileFinder.FindFilesToScanAsync();
 			findFilesToScan.Wait();
 			IEnumerable<FileInfo> files = findFilesToScan.Result;
-			files = files.ToList();
 
 			if( Options.Current.SortOutput ) {
 				RunScanSorted( files );
@@ -86,7 +101,7 @@ namespace Secrets.Finder {
 			Task.WaitAll( tasks.Values.ToArray() );
 
 			IEnumerable<KeyValuePair<FileInfo, Task<IList<string>>>> ordered = tasks
-				.Where( kv => kv.Value.Result.Any() )
+				.Where( kv => kv.Value.Result.Count > 0 )
 				.OrderBy( kv => kv.Key.FullName );
 
 			foreach( var pair in ordered ) {
@@ -98,12 +113,32 @@ namespace Secrets.Finder {
 		}
 
 		private static async Task<IList<string>> ScanFile( FileInfo file ) {
+			Stopwatch timer = Stopwatch.StartNew();
+
 			IEnumerable<string> secrets = await FileScanner.FindSecrets( file );
+#endif
+
+			timer.Stop();
+			if( Options.Current.ShowWarnings && timer.ElapsedMilliseconds > SafeLengthinMilliseconds ) {
+				secrets = secrets.Prepend(
+						$"[Took {timer.ElapsedMilliseconds}ms; are you sure this should be included?]"
+					);
+			}
 			return secrets.ToList();
 		}
 
 		private static async Task ScanAndOutput( FileInfo file ) {
+			Stopwatch timer = Stopwatch.StartNew();
+
 			IEnumerable<string> secrets = await FileScanner.FindSecrets( file );
+
+			timer.Stop();
+			if( Options.Current.ShowWarnings && timer.ElapsedMilliseconds > SafeLengthinMilliseconds ) {
+				secrets = secrets.Prepend(
+					$"[Took {timer.ElapsedMilliseconds}ms; are you sure this should be included?]"
+				);
+			}
+
 			OutputSecrets( file, secrets );
 		}
 
@@ -123,6 +158,11 @@ namespace Secrets.Finder {
 				output.AppendLine( secret );
 			}
 
+			if( Options.Current.ShowWarnings && !headerAdded && file.Length >= SafeFileSizeInBytes ) {
+				output.AppendLine( GetHeader( file ) );
+				headerAdded = true;
+			}
+
 			if( headerAdded ) {
 				Console.WriteLine( output.ToString() );
 			}
@@ -133,17 +173,34 @@ namespace Secrets.Finder {
 			dir = Path.GetFullPath( dir );
 			string filePath = file.FullName.Replace( $@"{dir}\", "" ).Replace( '\\', '/' );
 
-			return $"[{filePath}]"
+			string header = $"[{filePath}]"
 				+ $"\r\n[ { GetUrl( dir, filePath )} ]";
+
+			if( Options.Current.ShowWarnings && file.Length >= SafeFileSizeInBytes ) {
+				float megabytes = file.Length / (float)MegabytesInBytes;
+				header += $"\r\n[File is {megabytes.ToString( "F" )} MiB; are you sure this should be included?]";
+			}
+
+			return header;
 		}
 
 		private static readonly Regex GithubRegex = new Regex(
-				@"github[/\\]([a-z0-9_.-]+)$",
+				@"github[/\\]([a-zA-Z0-9_.-]+)$",
 				RegexOptions.Compiled
 			);
 
-		private static string GetUrl( string dir, string filePath ) {
+		private static string GetUrl( FileInfo file ) {
+			return GetUrl(
+				Options.Current.Directory,
+				file.FullName.Replace( $@"{Options.Current.Directory}\", "" ).Replace( '\\', '/' )
+			);
+		}
 
+		private static string GetUrl(
+			string dir,
+			string filePath
+		) {
+			filePath = filePath.Replace( " ", "%20" );
 			Match match = GithubRegex.Match( dir );
 			if( match.Success ) {
 				// Special case, due to Windows not allowing "CON." filenames

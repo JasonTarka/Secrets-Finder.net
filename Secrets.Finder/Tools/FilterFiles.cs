@@ -43,6 +43,7 @@ namespace Secrets.Finder.Tools {
 						pattern => new Regex(
 							pattern,
 							RegexOptions.Compiled | RegexOptions.CultureInvariant
+							| RegexOptions.Multiline
 							| RegexOptions.ExplicitCapture
 						)
 					)

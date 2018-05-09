@@ -42,14 +42,22 @@ namespace Secrets.Finder.Tools {
 			DirectoryInfo directory,
 			IEnumerable<Regex> fileFilters
 		) {
-			IEnumerable<FileInfo> files = directory.EnumerateFileSystemInfos()
+			IEnumerable<FileInfo> files = directory.EnumerateFiles()
 				.Where(
 					entry => !fileFilters.Any( filter => filter.IsMatch( entry.Name ) )
-				).SelectMany(
-					entry => entry is DirectoryInfo
-						? FindFilesToScan( (DirectoryInfo)entry, fileFilters )
-						: new[] { (FileInfo)entry }
 				);
+
+			IEnumerable<DirectoryInfo> directories = directory.EnumerateDirectories()
+				.Where(
+					entry => !fileFilters.Any( filter => filter.IsMatch( entry.Name ) )
+				);
+
+			files = files.Concat(
+					directories.SelectMany(
+						dir => FindFilesToScan( dir, fileFilters )
+					)
+				);
+
 			return files;
 		}
 
@@ -60,18 +68,15 @@ namespace Secrets.Finder.Tools {
 				file => file,
 				BinaryFileFilter.IsBinaryFileAsync
 			);
+
 			Task.WaitAll( tasks.Values.ToArray() );
-			IDictionary<FileInfo, bool> results = tasks
-				.ToDictionary(
-					kv => kv.Key,
-					kv => kv.Value.Result
-				);
-			IEnumerable<FileInfo> nonBinaryFiles = results
+
+			IEnumerable<FileInfo> nonBinaryFiles = tasks
 				.Where(
-					kv => !kv.Value
+					kv => !kv.Value.Result
 				).Select( kv => kv.Key );
 
-			return nonBinaryFiles;
+			return nonBinaryFiles.ToList();
 		}
 
 	}
